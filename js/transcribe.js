@@ -56,9 +56,6 @@ $("file-mic").innerHTML = icon("mic");
 $("remove-icon").innerHTML = icon("close");
 $("transcribe-btn-icon").innerHTML = icon("mic");
 $("copy-icon").innerHTML = icon("check");
-  if(!$("copy-icon").innerHTML){
-  $("copy-icon").innerHTML = "<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"> <rect x="9" y="9" width="11" height="11" rx="2"></rect> <path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"></path> </svg>";
-  }
 
 function setStep(step){
 const steps = ["upload", "analyze", "transcribe", "finish"];
