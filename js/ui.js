@@ -51,8 +51,7 @@ window.UI = (function(){
     const tabs = [
       { key:"sources", href:`sources.html?nb=${encodeURIComponent(nbId)}`, label:"المصادر", ic:"folder" },
       { key:"chat", href:`chat.html?nb=${encodeURIComponent(nbId)}`, label:"الشات", ic:"chat" },
-      { key:"studio", href:`studio.html?nb=${encodeURIComponent(nbId)}`, label:"استوديو", ic:"studio" },
-      { key:"transcribe", href:`transcribe.html?nb=${encodeURIComponent(nbId)}`, label:"تفريغ", ic:"mic" }
+      { key:"studio", href:`studio.html?nb=${encodeURIComponent(nbId)}`, label:"استوديو", ic:"studio" }
     ];
     el.innerHTML = tabs.map(t => `<a href="${t.href}" class="${t.key===activeTab?'active':''}">${icon(t.ic)}<span>${t.label}</span></a>`).join("");
   }
@@ -82,6 +81,7 @@ window.UI = (function(){
         </div>
       </div>
 
+
       <div class="modal-overlay hidden" id="modal-pro">
         <div class="modal-box">
           <h3>${icon("star")} النسخة المميزة — قريبًا</h3>
@@ -96,7 +96,9 @@ window.UI = (function(){
   }
 
   /* ================= Home ================= */
-  function renderHome(notebooks, onOpen, onDelete, onNew){
+  function showSetupBanner(){ }
+
+  function renderHome(notebooks, hasKey, onOpen, onDelete, onNew){
     const grid = $("nb-grid");
     grid.innerHTML = "";
     const newCard = document.createElement("div");
@@ -258,7 +260,7 @@ window.UI = (function(){
   return {
     $, escapeHtml, formatBytes, toast, openModal, closeModal,
     renderTopbar, renderTabnav, mountModals,
-    renderHome,
+    renderHome, showSetupBanner,
     renderSources, updateSelCount,
     renderChatEmpty, renderChatHistory, appendMsgEl,
     renderNotes
