@@ -2,12 +2,19 @@
   "use strict";
   const $ = UI.$;
 
+  let notebooks = Store.loadNotebooks();
   let cfg = Store.loadCfg();
+  const nb = Shared.loadNotebookOrRedirect(notebooks);
+  if(!nb) return;
 
-  UI.renderTopbar(null);
-  UI.renderTabnav(null, null);
+  UI.renderTopbar(nb);
+  UI.renderTabnav("transcribe", nb.id);
   UI.mountModals();
-  Shared.wireChrome(cfg, Store.saveCfg, {});
+  Shared.wireChrome(cfg, Store.saveCfg, {
+    onTitleChange: (val) => { nb.name = val || nb.name; persist(); UI.renderTopbar(nb); }
+  });
+
+  function persist(){ Store.saveNotebooks(notebooks); }
 
   const pickBtn = $("tr-pick-btn");
   const fileInput = $("tr-file-input");
@@ -67,6 +74,14 @@
       pickBtn.disabled = false;
     }
   }
+
+  $("tr-save-btn").addEventListener("click", () => {
+    const text = textEl.innerText;
+    if(!text.trim()){ UI.toast("ما في نص لحفظه بعد", true); return; }
+    nb.notes.unshift({ id: Store.uid(), type:"text", title:"تفريغ صوتي", content: text, createdAt: Date.now() });
+    persist();
+    UI.toast("انحفظ بالملاحظات — تلاقيه بصفحة الاستوديو");
+  });
 
   $("tr-copy-btn").addEventListener("click", () => {
     const text = textEl.innerText;
