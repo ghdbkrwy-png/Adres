@@ -6,7 +6,7 @@ const $ = UI.$;
 let selectedFile = null;
 let isProcessing = false;
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024;
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 const audioInput = $("audio-file");
 const audioDrop = $("audio-drop");
@@ -26,9 +26,15 @@ const copyTranscript = $("copy-transcript");
 
 const errorBox = $("transcribe-error");
 
-const notebooks = Store.loadNotebooks();
-const cfg = Store.loadCfg();
-const nb = Shared.loadNotebookOrRedirect(notebooks);
+/*
+
+* الصفحة تستخدم نفس نظام الدفتر الموجود بالتطبيق.
+* إذا دخل المستخدم بدون nb سيتم إعادته للرئيسية
+* بواسطة Shared.loadNotebookOrRedirect.
+  */
+  const notebooks = Store.loadNotebooks();
+  const cfg = Store.loadCfg();
+  const nb = Shared.loadNotebookOrRedirect(notebooks);
 
 if(!nb) return;
 
@@ -37,11 +43,11 @@ UI.renderTabnav("transcribe", nb.id);
 UI.mountModals();
 
 Shared.wireChrome(cfg, Store.saveCfg, {
-  onTitleChange: (val) => {
-    nb.name = val || nb.name;
-    Store.saveNotebooks(notebooks);
-    UI.renderTopbar(nb);
-  }
+onTitleChange: (val) => {
+nb.name = val || nb.name;
+Store.saveNotebooks(notebooks);
+UI.renderTopbar(nb);
+}
 });
 
 $("head-mic").innerHTML = icon("mic");
@@ -52,641 +58,369 @@ $("transcribe-btn-icon").innerHTML = icon("mic");
 $("copy-icon").innerHTML = icon("check");
 
 function setStep(step){
+const steps = ["upload", "analyze", "transcribe", "finish"];
 
-  const steps = [
-    "upload",
-    "analyze",
-    "transcribe",
-    "finish"
-  ];
+steps.forEach((name, index) => {
+  const el = $("step-" + name);
+  if(!el) return;
 
-  steps.forEach((name, index) => {
+  const currentIndex = steps.indexOf(step);
 
-    const el = $("step-" + name);
+  el.classList.remove("active", "done");
 
-    if(!el) return;
+  if(index < currentIndex){
+    el.classList.add("done");
+  }else if(index === currentIndex){
+    el.classList.add("active");
+  }
+});
 
-    const currentIndex = steps.indexOf(step);
+const titles = {
+  upload: "جارِ رفع التسجيل...",
+  analyze: "جاري الاستماع وتحليل التسجيل...",
+  transcribe: "جاري تحويل الكلام إلى نص...",
+  finish: "جاري تجهيز النص النهائي..."
+};
 
-    el.classList.remove("active", "done");
+processTitle.textContent = titles[step] || "جارِ المعالجة...";
 
-    if(index < currentIndex){
-      el.classList.add("done");
-    }
-    else if(index === currentIndex){
-      el.classList.add("active");
-    }
-
-  });
-
-  const titles = {
-    upload: "جارِ رفع التسجيل...",
-    analyze: "جاري الاستماع وتحليل التسجيل...",
-    transcribe: "جاري تحويل الكلام إلى نص...",
-    finish: "جاري تجهيز النص النهائي..."
-  };
-
-  processTitle.textContent =
-    titles[step] || "جارِ المعالجة...";
 }
 
 function showError(message){
-
-  errorBox.textContent = message;
-  errorBox.classList.add("show");
+errorBox.textContent = message;
+errorBox.classList.add("show");
 }
 
 function hideError(){
-
-  errorBox.textContent = "";
-  errorBox.classList.remove("show");
+errorBox.textContent = "";
+errorBox.classList.remove("show");
 }
 
 function formatSize(bytes){
+if(bytes < 1024) return bytes + " B";
 
-  if(bytes < 1024){
-    return bytes + " B";
-  }
+if(bytes < 1024 * 1024){
+  return (bytes / 1024).toFixed(1) + " KB";
+}
 
-  if(bytes < 1024 * 1024){
-    return (bytes / 1024).toFixed(1) + " KB";
-  }
+return (bytes / (1024 * 1024)).toFixed(2) + " MB";
 
-  if(bytes < 1024 * 1024 * 1024){
-    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
-  }
-
-  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
 }
 
 function setSelectedFile(file){
+hideError();
 
-  hideError();
+if(!file){
+  clearFile();
+  return;
+}
 
-  if(!file){
+if(!file.type || !file.type.startsWith("audio/")){
+  showError("الملف المحدد ليس ملفًا صوتيًا.");
+  clearFile();
+  return;
+}
 
-    clearFile();
+if(file.size > MAX_FILE_SIZE){
+  showError("حجم الملف كبير جدًا. الحد الأقصى للرفع من هذه الصفحة هو 50 MB.");
+  clearFile();
+  return;
+}
 
-    return;
-  }
+selectedFile = file;
 
-  if(!file.type || !file.type.startsWith("audio/")){
+fileName.textContent = file.name;
+fileSize.textContent = formatSize(file.size);
 
-    showError("الملف المحدد ليس ملفًا صوتيًا.");
+fileInfo.classList.add("show");
+transcribeBtn.disabled = false;
 
-    clearFile();
+transcriptBox.classList.remove("show");
+transcriptContent.textContent = "";
 
-    return;
-  }
-
-  if(file.size > MAX_FILE_SIZE){
-
-    showError(
-      "حجم الملف كبير جدًا. الحد الأقصى المدعوم هو 2 GB."
-    );
-
-    clearFile();
-
-    return;
-  }
-
-  selectedFile = file;
-
-  fileName.textContent = file.name;
-  fileSize.textContent = formatSize(file.size);
-
-  fileInfo.classList.add("show");
-
-  transcribeBtn.disabled = false;
-
-  transcriptBox.classList.remove("show");
-  transcriptContent.textContent = "";
 }
 
 function clearFile(){
+selectedFile = null;
 
-  selectedFile = null;
+audioInput.value = "";
 
-  audioInput.value = "";
+fileInfo.classList.remove("show");
 
-  fileInfo.classList.remove("show");
+fileName.textContent = "";
+fileSize.textContent = "";
 
-  fileName.textContent = "";
-  fileSize.textContent = "";
+transcribeBtn.disabled = true;
 
-  transcribeBtn.disabled = true;
+transcriptBox.classList.remove("show");
+transcriptContent.textContent = "";
 
-  transcriptBox.classList.remove("show");
-
-  transcriptContent.textContent = "";
 }
 
 audioInput.addEventListener("change", () => {
-
-  const file =
-    audioInput.files &&
-    audioInput.files[0];
-
-  setSelectedFile(file);
-
+const file = audioInput.files && audioInput.files[0];
+setSelectedFile(file);
 });
 
 removeFile.addEventListener("click", (e) => {
+e.preventDefault();
+e.stopPropagation();
 
-  e.preventDefault();
-  e.stopPropagation();
+if(isProcessing) return;
 
-  if(isProcessing) return;
-
-  clearFile();
+clearFile();
 
 });
 
 audioDrop.addEventListener("dragover", (e) => {
-
-  e.preventDefault();
-
-  if(!isProcessing){
-    audioDrop.classList.add("dragging");
-  }
-
+e.preventDefault();
+if(!isProcessing) audioDrop.classList.add("dragging");
 });
 
 audioDrop.addEventListener("dragleave", () => {
-
-  audioDrop.classList.remove("dragging");
-
+audioDrop.classList.remove("dragging");
 });
 
 audioDrop.addEventListener("drop", (e) => {
+e.preventDefault();
+audioDrop.classList.remove("dragging");
 
-  e.preventDefault();
+if(isProcessing) return;
 
-  audioDrop.classList.remove("dragging");
+const file = e.dataTransfer.files && e.dataTransfer.files[0];
 
-  if(isProcessing) return;
-
-  const file =
-    e.dataTransfer.files &&
-    e.dataTransfer.files[0];
-
-  if(file){
-    setSelectedFile(file);
-  }
+if(file){
+  setSelectedFile(file);
+}
 
 });
 
-
-/*
- * الحصول على رابط جلسة رفع من Vercel.
- *
- * مهم:
- * Vercel لا تستقبل الملف.
- * هي فقط تنشئ جلسة الرفع في Gemini وترجع الرابط.
- */
-async function createUploadSession(file){
-
-  const response = await fetch(
-    "/api/upload",
-    {
-      method: "POST",
-
-      headers: {
-        "Content-Type":
-          file.type ||
-          "application/octet-stream",
-
-        "X-File-Name":
-          encodeURIComponent(file.name),
-
-        "X-File-Size":
-          String(file.size)
-      }
-    }
-  );
-
-  let data = null;
-
-  try{
-
-    data = await response.json();
-
-  }catch(e){
-
-    throw new Error(
-      "الخادم أعاد استجابة غير صالحة أثناء تجهيز الرفع."
-    );
-
-  }
-
-  if(!response.ok){
-
-    throw new Error(
-      extractError(data)
-    );
-
-  }
-
-  if(!data || !data.uploadUrl){
-
-    throw new Error(
-      "Google لم يرجع رابط رفع."
-    );
-
-  }
-
-  return data;
-}
-
-
-/*
- * الرفع الحقيقي:
- *
- * المتصفح → Google Gemini مباشرة
- *
- * وليس:
- *
- * المتصفح → Vercel → Google
- */
-async function uploadDirectToGemini(file, session){
-
-  const response = await fetch(
-    session.uploadUrl,
-    {
-      method: "POST",
-
-      headers: {
-
-        "Content-Length":
-          String(file.size),
-
-        "X-Goog-Upload-Offset":
-          "0",
-
-        "X-Goog-Upload-Command":
-          "upload, finalize",
-
-        "Content-Type":
-          file.type ||
-          "application/octet-stream"
-      },
-
-      body: file
-    }
-  );
-
-  const responseText =
-    await response.text();
-
-  let data = null;
-
-  try{
-
-    data = JSON.parse(responseText);
-
-  }catch(e){
-
-    data = {
-      raw: responseText
-    };
-
-  }
-
-  if(!response.ok){
-
-    let message =
-      "فشل رفع التسجيل إلى Google.";
-
-    if(data?.error){
-
-      if(typeof data.error === "string"){
-
-        message = data.error;
-
-      }
-      else if(data.error.message){
-
-        message =
-          data.error.message;
-      }
-
-    }
-
-    throw new Error(message);
-  }
-
-  if(!data?.file?.uri){
-
-    throw new Error(
-      "تم رفع التسجيل لكن Google لم يرجع رابط الملف."
-    );
-  }
-
-  return {
-
-    uri: data.file.uri,
-
-    mimeType:
-      data.file.mimeType ||
-      file.type ||
-      "audio/mpeg"
-  };
-}
-
-
 async function uploadAudio(file){
+/*
+* نستخدم upload.js الموجود أصلًا في المشروع.
+* الملف يمر من المتصفح إلى /api/upload ثم إلى Gemini،
+* والمفتاح السري لا يصل للمتصفح.
+*/
+const response = await fetch("/api/upload", {
+method: "POST",
+
+  headers: {
+    "Content-Type": file.type || "application/octet-stream",
+    "X-File-Name": encodeURIComponent(file.name),
+    "X-File-Size": String(file.size)
+  },
+
+  body: file
+});
+
+let data = null;
+
+try{
+  data = await response.json();
+}catch(e){
+  throw new Error("الخادم أعاد استجابة غير صالحة أثناء رفع التسجيل.");
+}
+
+if(!response.ok){
+  throw new Error(extractError(data));
+}
+
+if(!data || !data.file){
+  throw new Error("تم رفع التسجيل لكن لم يتم استلام معلومات الملف من الخادم.");
+}
+
+if(!data.file.uri){
+  throw new Error("Gemini لم يرجع رابط الملف بعد الرفع.");
+}
+
+return {
+  uri: data.file.uri,
+  mimeType: data.file.mimeType || file.type || "audio/mpeg"
+};
+
+}
+
+async function transcribeAudio(fileData){
+const response = await fetch("/api/transcribe", {
+method: "POST",
+
+  headers: {
+    "Content-Type": "application/json"
+  },
+
+  body: JSON.stringify({
+    fileUri: fileData.uri,
+    mimeType: fileData.mimeType
+  })
+});
+
+let data = null;
+
+try{
+  data = await response.json();
+}catch(e){
+  throw new Error("الخادم أعاد استجابة غير صالحة أثناء التفريغ.");
+}
+
+if(!response.ok){
+  throw new Error(extractError(data));
+}
+
+const text = data && data.text;
+
+if(typeof text !== "string" || !text.trim()){
+  throw new Error("لم يتم العثور على نص واضح في التسجيل.");
+}
+
+return text.trim();
+
+}
+
+function extractError(data){
+if(!data) return "حدث خطأ غير معروف.";
+
+if(typeof data.error === "string"){
+  return data.error;
+}
+
+if(data.error && typeof data.error.message === "string"){
+  return data.error.message;
+}
+
+return "حدث خطأ أثناء معالجة التسجيل.";
+
+}
+
+async function startTranscription(){
+if(!selectedFile || isProcessing) return;
+
+hideError();
+
+isProcessing = true;
+
+transcribeBtn.disabled = true;
+removeFile.disabled = true;
+
+processBox.classList.add("show");
+processSpinner.style.display = "block";
+
+transcriptBox.classList.remove("show");
+transcriptContent.textContent = "";
+
+try{
 
   /*
    * المرحلة الأولى:
-   * نطلب من Vercel إنشاء جلسة فقط.
+   * رفع التسجيل
    */
-  const session =
-    await createUploadSession(file);
+  setStep("upload");
+
+  const fileData = await uploadAudio(selectedFile);
 
   /*
    * المرحلة الثانية:
-   * رفع الملف مباشرة إلى Google.
+   * إرسال الملف إلى نموذج التفريغ.
+   * لا يوجد Progress حقيقي من Gemini لهذه المرحلة،
+   * لذلك نظهر للمستخدم حالة المعالجة الحالية بدل نسبة وهمية.
    */
-  return await uploadDirectToGemini(
-    file,
-    session
+  setStep("analyze");
+
+  /*
+   * ننتظر قليلًا حتى تكون حالة الواجهة واضحة للمستخدم
+   * قبل بدء طلب التفريغ.
+   */
+  await delay(350);
+
+  setStep("transcribe");
+
+  const text = await transcribeAudio(fileData);
+
+  setStep("finish");
+
+  await delay(250);
+
+  transcriptContent.textContent = text;
+
+  transcriptBox.classList.add("show");
+
+  processBox.classList.remove("show");
+
+  UI.toast("تم تفريغ التسجيل بنجاح");
+
+  /*
+   * نضع المؤشر على بداية النص.
+   */
+  transcriptContent.scrollTop = 0;
+
+}catch(err){
+
+  processBox.classList.remove("show");
+
+  showError(
+    "تعذّر تفريغ التسجيل: " +
+    (err && err.message ? err.message : String(err))
   );
+
+}finally{
+
+  isProcessing = false;
+
+  transcribeBtn.disabled = !selectedFile;
+  removeFile.disabled = false;
+
 }
 
-
-async function transcribeAudio(fileData){
-
-  const response = await fetch(
-    "/api/transcribe",
-    {
-      method: "POST",
-
-      headers: {
-        "Content-Type":
-          "application/json"
-      },
-
-      body: JSON.stringify({
-
-        fileUri:
-          fileData.uri,
-
-        mimeType:
-          fileData.mimeType
-      })
-    }
-  );
-
-  let data = null;
-
-  try{
-
-    data = await response.json();
-
-  }catch(e){
-
-    throw new Error(
-      "الخادم أعاد استجابة غير صالحة أثناء التفريغ."
-    );
-
-  }
-
-  if(!response.ok){
-
-    throw new Error(
-      extractError(data)
-    );
-
-  }
-
-  const text =
-    data &&
-    data.text;
-
-  if(
-    typeof text !== "string" ||
-    !text.trim()
-  ){
-
-    throw new Error(
-      "لم يتم العثور على نص واضح في التسجيل."
-    );
-
-  }
-
-  return text.trim();
 }
-
-
-function extractError(data){
-
-  if(!data){
-    return "حدث خطأ غير معروف.";
-  }
-
-  if(typeof data.error === "string"){
-    return data.error;
-  }
-
-  if(
-    data.error &&
-    typeof data.error.message === "string"
-  ){
-
-    return data.error.message;
-  }
-
-  return "حدث خطأ أثناء معالجة التسجيل.";
-}
-
-
-async function startTranscription(){
-
-  if(
-    !selectedFile ||
-    isProcessing
-  ){
-
-    return;
-  }
-
-  hideError();
-
-  isProcessing = true;
-
-  transcribeBtn.disabled = true;
-  removeFile.disabled = true;
-
-  processBox.classList.add("show");
-
-  processSpinner.style.display = "block";
-
-  transcriptBox.classList.remove("show");
-
-  transcriptContent.textContent = "";
-
-  try{
-
-    /*
-     * رفع التسجيل
-     */
-    setStep("upload");
-
-    const fileData =
-      await uploadAudio(
-        selectedFile
-      );
-
-    /*
-     * انتهى الرفع.
-     */
-    setStep("analyze");
-
-    await delay(500);
-
-    /*
-     * إرسال رابط الملف للموديل.
-     */
-    setStep("transcribe");
-
-    const text =
-      await transcribeAudio(
-        fileData
-      );
-
-    /*
-     * النتيجة.
-     */
-    setStep("finish");
-
-    await delay(250);
-
-    transcriptContent.textContent =
-      text;
-
-    transcriptBox.classList.add("show");
-
-    processBox.classList.remove("show");
-
-    UI.toast(
-      "تم تفريغ التسجيل بنجاح"
-    );
-
-    transcriptContent.scrollTop = 0;
-
-  }catch(err){
-
-    processBox.classList.remove("show");
-
-    showError(
-      "تعذّر تفريغ التسجيل: " +
-      (
-        err &&
-        err.message
-          ? err.message
-          : String(err)
-      )
-    );
-
-  }finally{
-
-    isProcessing = false;
-
-    transcribeBtn.disabled =
-      !selectedFile;
-
-    removeFile.disabled = false;
-  }
-}
-
 
 function delay(ms){
-
-  return new Promise(
-    resolve =>
-      setTimeout(resolve, ms)
-  );
+return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+transcribeBtn.addEventListener("click", startTranscription);
 
-transcribeBtn.addEventListener(
-  "click",
-  startTranscription
-);
+copyTranscript.addEventListener("click", async () => {
 
+const text = transcriptContent.textContent || "";
 
-copyTranscript.addEventListener(
-  "click",
-  async () => {
+if(!text.trim()){
+  UI.toast("لا يوجد نص لنسخه", true);
+  return;
+}
 
-    const text =
-      transcriptContent.textContent ||
-      "";
+try{
 
-    if(!text.trim()){
+  await navigator.clipboard.writeText(text);
 
-      UI.toast(
-        "لا يوجد نص لنسخه",
-        true
-      );
+  UI.toast("تم نسخ النص الصوتي");
 
-      return;
-    }
+}catch(err){
 
-    try{
+  /*
+   * fallback للأجهزة أو المتصفحات التي لا تسمح
+   * باستخدام Clipboard API.
+   */
+  const textarea = document.createElement("textarea");
 
-      await navigator.clipboard.writeText(
-        text
-      );
+  textarea.value = text;
 
-      UI.toast(
-        "تم نسخ النص الصوتي"
-      );
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
 
-    }catch(err){
+  document.body.appendChild(textarea);
 
-      const textarea =
-        document.createElement(
-          "textarea"
-        );
+  textarea.focus();
+  textarea.select();
 
-      textarea.value = text;
-
-      textarea.style.position =
-        "fixed";
-
-      textarea.style.opacity =
-        "0";
-
-      document.body.appendChild(
-        textarea
-      );
-
-      textarea.focus();
-      textarea.select();
-
-      try{
-
-        document.execCommand(
-          "copy"
-        );
-
-        UI.toast(
-          "تم نسخ النص الصوتي"
-        );
-
-      }catch(e){
-
-        UI.toast(
-          "تعذّر نسخ النص تلقائيًا",
-          true
-        );
-      }
-
-      textarea.remove();
-    }
-
+  try{
+    document.execCommand("copy");
+    UI.toast("تم نسخ النص الصوتي");
+  }catch(e){
+    UI.toast("تعذّر نسخ النص تلقائيًا", true);
   }
-);
+
+  textarea.remove();
+}
+
+});
 
 })();
