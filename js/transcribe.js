@@ -62,9 +62,10 @@
           { text: "فرّغ هذا التسجيل الآن." }
         ]
       }];
+      // نستخدم مسار /api/transcribe المخصص (موديل مستقل عن الشات تمامًا)
       await Gemini.streamGenerate(SYSTEM_PROMPT, contents, (partial) => {
         textEl.textContent = partial;
-      });
+      }, "/api/transcribe");
       statusEl.textContent = "تم التفريغ ✓";
     }catch(err){
       statusEl.textContent = "صار خطأ: " + (err.message || err);

@@ -1,43 +1,43 @@
-// كل التعامل مع الذكاء الاصطناعي — بس هالمرة بدون ما يشوف المتصفح مفتاح API إطلاقًا.
-// كل طلب يروح لخادم API الآمن على Vercel يلي يحمل المفتاح باسم متغيرات بيئة،
-// رفع الملف نفسه يمر عبر Vercel حتى ما يعتمد المتصفح على CORS الخاص بـGoogle.
+// كل التعامل مع الذكاء الاصطناعي يروح لمسارات /api/* بنفس الموقع (Vercel Functions).
+// المفتاح واسما النماذج بمتغيرات بيئة Vercel بس — ما فيهم أي أثر هون ولا بأي مكان
+// يوصله المتصفح.
+//
+// ملاحظة مهمة عن الرفع: كنا نرسل بايتات الملف مباشرة من المتصفح لرابط جلسة من
+// Google، لكن هذا الرابط ما يدعم CORS من متصفح (موثّق من Google)، فكان يفشل
+// دايمًا بغض النظر عن حجم الملف. الحل: المتصفح يرفع لمسارنا الخاص /api/upload-proxy
+// (نفس الدومين، بدون CORS إطلاقًا)، وهو يمرر البايتات لـ Google من طرف السيرفر.
 window.Gemini = (function(){
 
-  /* ---------- 1) رفع الملف عبر Vercel بدون كشف المفتاح ---------- */
+  const API = "/api";
 
-  function uploadBytesWithProgress(proxyBase, file, onProgress){
+  /* ---------- رفع الملف ---------- */
+
+  function uploadSource(file, onProgress){
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", `${proxyBase}/upload`, true);
-      xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+      xhr.open("POST", `${API}/upload-proxy`, true);
       xhr.setRequestHeader("X-File-Name", encodeURIComponent(file.name));
+      xhr.setRequestHeader("X-File-Type", file.type || "application/pdf");
       xhr.setRequestHeader("X-File-Size", String(file.size));
-      xhr.upload.onprogress = (e) => {
-        if(e.lengthComputable && onProgress) onProgress(Math.round((e.loaded/e.total)*100));
-      };
+      xhr.upload.onprogress = (e) => { if(e.lengthComputable && onProgress) onProgress(Math.round((e.loaded/e.total)*100)); };
       xhr.onload = () => {
-        if(xhr.status >= 200 && xhr.status < 300){
-          try{
-            const data = JSON.parse(xhr.responseText);
-            if(data.file) resolve(data.file);
-            else reject(new Error("رد غير متوقع من رفع الملف"));
-          }catch(e){ reject(new Error("رد غير متوقع من الرفع")); }
+        let data;
+        try{ data = JSON.parse(xhr.responseText); }catch(e){ data = null; }
+        if(xhr.status >= 200 && xhr.status < 300 && data && !data.error){
+          resolve(data.file || data);
         }else{
-          reject(new Error("فشل رفع الملف (" + xhr.status + "): " + xhr.responseText.slice(0,200)));
+          const msg = data && data.error ? (typeof data.error === "string" ? data.error : JSON.stringify(data.error)) : xhr.responseText.slice(0,200);
+          reject(new Error("فشل رفع الملف (" + xhr.status + "): " + msg));
         }
       };
-      xhr.onerror = () => reject(new Error("انقطع الاتصال أثناء الرفع"));
+      xhr.onerror = () => reject(new Error("انقطع الاتصال أثناء الرفع — تأكد إن الموقع متصل بالإنترنت وحاول ثانية"));
       xhr.send(file);
     });
   }
 
-  async function uploadSource(proxyBase, file, onProgress){
-    return uploadBytesWithProgress(proxyBase, file, onProgress);
-  }
-
-  async function pollUntilActive(proxyBase, fileApiName, onState){
+  async function pollUntilActive(fileApiName, onState){
     for(let i=0;i<15;i++){
-      const res = await fetch(`${proxyBase}/file-status?name=${encodeURIComponent(fileApiName)}`);
+      const res = await fetch(`${API}/file-status?name=${encodeURIComponent(fileApiName)}`);
       if(!res.ok) break;
       const data = await res.json();
       if(onState) onState(data.state);
@@ -47,25 +47,24 @@ window.Gemini = (function(){
     return "ACTIVE";
   }
 
-  /* ---------- 2) المحادثة النصية (streaming عبر الوسيط) ---------- */
+  /* ---------- المحادثة النصية (streaming) ---------- */
 
-  function parseProxyError(text, status){
+  function parseApiError(text, status){
     try{
       const o = JSON.parse(text);
       if(o?.error) return typeof o.error === "string" ? o.error : (o.error.message || JSON.stringify(o.error));
     }catch(e){}
-    if(status === 404) return "ما قدرنا نوصل إلى API الآمن على Vercel";
-    if(status === 500) return "خطأ بخادم Gemini — تأكد إن GEMINI_API_KEY مضاف صح بمتغيرات Vercel";
+    if(status === 500) return "خطأ بالسيرفر — تأكد إن GEMINI_API_KEY مضاف بمتغيرات البيئة على Vercel";
     return "خطأ (" + status + ")";
   }
 
-  async function streamGenerate(proxyBase, systemInstruction, contents, onChunk){
-    const res = await fetch(`${proxyBase}/chat`, {
+  async function streamGenerate(systemInstruction, contents, onChunk, endpoint){
+    const res = await fetch(endpoint || `${API}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ systemInstruction, contents })
     });
-    if(!res.ok){ const t = await res.text(); throw new Error(parseProxyError(t, res.status)); }
+    if(!res.ok){ const t = await res.text(); throw new Error(parseApiError(t, res.status)); }
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
@@ -92,15 +91,15 @@ window.Gemini = (function(){
     return full || "(لم يصل رد)";
   }
 
-  /* ---------- 3) الصوت (عبر الوسيط أيضًا) ---------- */
+  /* ---------- الصوت ---------- */
 
-  async function callTTS(proxyBase, prompt, speechConfig){
-    const res = await fetch(`${proxyBase}/tts`, {
+  async function callTTS(prompt, speechConfig){
+    const res = await fetch(`${API}/tts`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt, speechConfig })
     });
-    if(!res.ok){ const t = await res.text(); throw new Error(parseProxyError(t, res.status)); }
+    if(!res.ok){ const t = await res.text(); throw new Error(parseApiError(t, res.status)); }
     const data = await res.json();
     const part = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData || p.inline_data);
     const inline = part && (part.inlineData || part.inline_data);
@@ -111,9 +110,9 @@ window.Gemini = (function(){
     return { base64: inline.data, sampleRate };
   }
 
-  function generateSpeechFromScript(proxyBase, scriptText){
+  function generateSpeechFromScript(scriptText){
     const prompt = "حوّل الحوار التالي بين سارة ووليد إلى صوت بنبرة طبيعية وودودة، كل متحدث بصوته:\n\n" + scriptText;
-    return callTTS(proxyBase, prompt, {
+    return callTTS(prompt, {
       multiSpeakerVoiceConfig: {
         speakerVoiceConfigs: [
           { speaker: "سارة", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } },
@@ -123,9 +122,9 @@ window.Gemini = (function(){
     });
   }
 
-  function generateSingleVoiceSpeech(proxyBase, text, voiceName){
+  function generateSingleVoiceSpeech(text, voiceName){
     const prompt = "اقرأ النص التالي بصوت راوٍ واضح وهادئ ومناسب لعرض تعليمي:\n\n" + text;
-    return callTTS(proxyBase, prompt, { voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceName || "Kore" } } });
+    return callTTS(prompt, { voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceName || "Kore" } } });
   }
 
   function pcmBase64ToWavBlob(base64, sampleRate){
@@ -148,7 +147,7 @@ window.Gemini = (function(){
     return new Blob([buffer], { type: "audio/wav" });
   }
 
-  /* ---------- 4) النظرة الصوتية (بودكاست بمتحدثين) ---------- */
+  /* ---------- النظرة الصوتية (بودكاست بمتحدثين) ---------- */
 
   const PODCAST_SYSTEM = "أنت كاتب سيناريو بودكاست. اكتب حوار قصير طبيعي بين متحدثين، سارة ووليد، " +
     "يناقشان محتوى المصادر المرفقة بأسلوب ودّي ومبسّط وكأنهما يشرحان الموضوع لمستمع لأول مرة. " +
@@ -156,21 +155,21 @@ window.Gemini = (function(){
     "كل سطر يبدأ باسم المتحدث متبوعًا بنقطتين تمامًا هكذا:\nسارة: ...\nوليد: ...\n" +
     "ابدأ بترحيب قصير واختم بخلاصة قصيرة. لا تكتب أي شيء خارج صيغة الحوار.";
 
-  async function generatePodcastScript(proxyBase, activeSourceParts){
+  async function generatePodcastScript(activeSourceParts){
     const contents = [{ role:"user", parts: [...activeSourceParts, {text:"اكتب حوار البودكاست الآن."}] }];
-    return streamGenerate(proxyBase, PODCAST_SYSTEM, contents, null);
+    return streamGenerate(PODCAST_SYSTEM, contents, null);
   }
 
-  async function generatePodcast(proxyBase, activeSourceParts, onStage){
+  async function generatePodcast(activeSourceParts, onStage){
     if(onStage) onStage("script");
-    const script = await generatePodcastScript(proxyBase, activeSourceParts);
+    const script = await generatePodcastScript(activeSourceParts);
     if(onStage) onStage("audio");
-    const { base64, sampleRate } = await generateSpeechFromScript(proxyBase, script);
+    const { base64, sampleRate } = await generateSpeechFromScript(script);
     const blob = pcmBase64ToWavBlob(base64, sampleRate);
     return { script, url: URL.createObjectURL(blob) };
   }
 
-  /* ---------- 5) شرح بالسلايدات — كل شريحة بصوت مستقل ---------- */
+  /* ---------- شرح بالسلايدات — كل شريحة بصوت مستقل ---------- */
 
   const SLIDES_SYSTEM = "أنت مصمم عروض تقديمية تعليمية. بناءً على المصادر المرفقة، جهّز عرض شرائح مبسّط. " +
     "أرجع فقط مصفوفة JSON صالحة بدون أي نص أو شرح أو Markdown حولها، بالضبط بهذا الشكل:\n" +
@@ -184,9 +183,9 @@ window.Gemini = (function(){
     return JSON.parse(text.slice(start, end+1));
   }
 
-  async function generateSlidesOutline(proxyBase, activeSourceParts){
+  async function generateSlidesOutline(activeSourceParts){
     const contents = [{ role:"user", parts: activeSourceParts.concat([{text:"جهّز عرض الشرائح الآن."}]) }];
-    const raw = await streamGenerate(proxyBase, SLIDES_SYSTEM, contents, null);
+    const raw = await streamGenerate(SLIDES_SYSTEM, contents, null);
     const arr = extractJsonArray(raw);
     if(!Array.isArray(arr) || arr.length === 0) throw new Error("ما قدر النموذج يجهّز شرائح من هالمصادر");
     return arr.slice(0, 12).map(s => ({
@@ -196,16 +195,16 @@ window.Gemini = (function(){
     }));
   }
 
-  async function generateSlideDeck(proxyBase, activeSourceParts, onProgress){
+  async function generateSlideDeck(activeSourceParts, onProgress){
     if(onProgress) onProgress({ stage:"outline" });
-    const outline = await generateSlidesOutline(proxyBase, activeSourceParts);
+    const outline = await generateSlidesOutline(activeSourceParts);
     const slides = [];
     for(let i=0;i<outline.length;i++){
       if(onProgress) onProgress({ stage:"audio", index:i+1, total:outline.length });
       const s = outline[i];
       let audioUrl = null;
       try{
-        const { base64, sampleRate } = await generateSingleVoiceSpeech(proxyBase, s.narration, "Kore");
+        const { base64, sampleRate } = await generateSingleVoiceSpeech(s.narration, "Kore");
         audioUrl = URL.createObjectURL(pcmBase64ToWavBlob(base64, sampleRate));
       }catch(e){ /* شريحة وحدة تفشل ما توقف الباقي */ }
       slides.push({ title:s.title, bullets:s.bullets, narration:s.narration, audioUrl });
