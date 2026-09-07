@@ -34,7 +34,6 @@ window.UI = (function(){
       <div class="topbar-mid">${nb ? `<input id="wb-title" class="wb-title" value="${escapeHtml(nb.name)}" spellcheck="false">` : ``}</div>
       <div class="topbar-right">
         <button class="icon-btn" id="settings-btn" title="الإعدادات">${icon("settings")}</button>
-        <button class="btn btn-gold" id="pro-btn">${icon("star")} مميز</button>
       </div>`;
   }
 
