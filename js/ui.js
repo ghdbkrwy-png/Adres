@@ -49,10 +49,10 @@ window.UI = (function(){
     el.classList.remove("hidden");
     if(root) root.classList.remove("no-tabnav");
     const tabs = [
-{ key:"sources", href:"sources.html?nb=${encodeURIComponent(nbId)}", label:"المصادر", ic:"folder" },
-{ key:"chat", href:"chat.html?nb=${encodeURIComponent(nbId)}", label:"الشات", ic:"chat" },
-{ key:"studio", href:"studio.html?nb=${encodeURIComponent(nbId)}", label:"استوديو", ic:"studio" },
-{ key:"transcribe", href:"transcribe.html?nb=${encodeURIComponent(nbId)}", label:"تفريغ الصوت", ic:"mic" }
+  { key:"sources", href:`sources.html?nb=${encodeURIComponent(nbId)}`, label:"المصادر", ic:"folder" },
+  { key:"chat", href:`chat.html?nb=${encodeURIComponent(nbId)}`, label:"الشات", ic:"chat" },
+  { key:"studio", href:`studio.html?nb=${encodeURIComponent(nbId)}`, label:"استوديو", ic:"studio" },
+  { key:"transcribe", href:`transcribe.html?nb=${encodeURIComponent(nbId)}`, label:"تفريغ الصوت", ic:"mic" }
 ];
     el.innerHTML = tabs.map(t => `<a href="${t.href}" class="${t.key===activeTab?'active':''}">${icon(t.ic)}<span>${t.label}</span></a>`).join("");
   }
