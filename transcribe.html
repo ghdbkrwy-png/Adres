@@ -20,12 +20,11 @@
 </head>
 <body>
 <header id="topbar"></header>
-<nav id="tabnav" class="hidden"></nav>
-<div id="page-root" class="no-tabnav">
+<nav id="tabnav"></nav>
+<div id="page-root">
   <div class="page-scroll">
     <div class="page-pad tr-pad">
-      <div class="page-title-row"><h2>تفريغ الصوت</h2></div>
-      <p class="tr-desc">ارفع أي تسجيل صوتي — محاضرة، اجتماع، ملاحظة صوتية — ويسمعه بدقة عالية ويحوّله لنص مكتوب ومرتب، جاهز للنسخ أو التعديل أو الطباعة.</p>
+      <p class="tr-desc">ارفع أي تسجيل صوتي — محاضرة، اجتماع، ملاحظة صوتية — ويسمعه بدقة عالية ويحوّله لنص مكتوب ومرتب.</p>
 
       <div class="tr-upload">
         <input type="file" id="tr-file-input" hidden accept="audio/*">
@@ -37,6 +36,7 @@
         <div class="tr-result-head">
           <h3>النص المفرّغ</h3>
           <div class="tr-actions">
+            <button class="btn btn-ghost btn-sm" id="tr-save-btn">حفظ بالملاحظات</button>
             <button class="btn btn-ghost btn-sm" id="tr-copy-btn">نسخ</button>
             <button class="btn btn-ghost btn-sm" id="tr-print-btn">طباعة</button>
             <button class="btn btn-ghost btn-sm" id="tr-download-btn">تنزيل .txt</button>
