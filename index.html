@@ -149,121 +149,15 @@ const DESTINATION =
 
 
 /* ==========================================
-   الأكواد المسموحة
-========================================== */
-
-const VALID_CODES = [
-'PTUR-C6GI-A1K2',
-'SACG-D0E6-Y8KB',
-'3G2C-SYRG-70XU',
-'UWJM-P0BR-53AU',
-'WJXG-89T1-MQ6E',
-'EH02-VZ6T-SEKT',
-'3JXW-X7YB-DIP3',
-'V574-PJ1S-3Z1Q',
-'S1VI-3XVK-44S4',
-'L9YI-LJFB-6MO5',
-'6QAO-8LRP-17CL',
-'T0CA-9QQG-ZLYT',
-'ZQNT-M6SG-0QU0',
-'9066-J0YE-35CI',
-'12CV-M9E4-RDPN',
-'JG57-CDNQ-5S5Q',
-'IX1F-IE3Z-DUJG',
-'Z4EA-HC13-6H96',
-'B01U-RFW4-QDUR',
-'XOVH-C2O5-EO32',
-'03PD-HVGQ-T4HF',
-'JH2L-CZ4Z-VBVH',
-'4T1W-CATI-3OGU',
-'LVFD-GHY7-QK4P',
-'IXAH-ETWB-KF24',
-'TVZM-A92Q-916F',
-'ZYCN-AI51-3MKC',
-'EL1W-EZYT-S5CJ',
-'WLCA-YXQX-TMSE',
-'OZ3F-699B-1PQQ',
-'TCHJ-9XVJ-LQ3N',
-'3FA8-SK77-W1ES',
-'1CX4-NG3M-Q1GJ',
-'NFPX-K3D6-41P3',
-'4GJ7-U1QH-14Q9',
-'L5AJ-WLJW-T31P',
-'OERG-DUSW-GLPB',
-'5EL8-55RV-TKGI',
-'IWT8-77GN-6SPC',
-'ZAM6-5K7K-MYMP',
-'DTD2-QUDN-XER1',
-'LRWK-MM9O-2OW0',
-'D49H-LMDN-4WXH',
-'AVZM-LNYF-GKBL',
-'9G6E-7L8T-QXFT',
-'7QST-T6FS-F4HP',
-'0NK7-IPI2-XFJH',
-'YEBI-7G5H-9KPC',
-'18F8-6VNB-9BBH',
-'U04F-L1Z1-ENHR',
-'39LO-RH34-2E3B',
-'2A13-5XBJ-UDTP',
-'RMDO-CQ94-ITKA',
-'JJNR-C91U-JU3X',
-'Q4NG-NMNB-31XK',
-'H10Z-DKVK-3A8R',
-'WTBG-V88C-CSMU',
-'CV2A-1ZVB-5T9N',
-'YTCL-Z6Y8-K92Z',
-'1LUI-NO1G-V3QN',
-'TCK0-2YL5-UNB6',
-'XWFV-AB31-ND8X',
-'MYVN-IA2P-IY3A',
-'Q9M8-ZBPE-8PAG',
-'NP7D-4OBY-GGKA',
-'V1X9-W295-MABD',
-'BXDP-605X-S6Y6',
-'SFE5-F8PS-Y3N1',
-'MMKE-MHVO-801H',
-'N6XV-IKSW-YKK8',
-'OP5E-A6GO-TPO5',
-'MV1F-MCW0-406T',
-'G57K-4Z9G-G1X1',
-'TV2N-I8J0-54ZJ',
-'Y07U-AVCA-OKPY',
-'T250-9BYO-0PHA',
-'OSKG-7PS7-G94B',
-'CGP8-H5VD-1FGY',
-'6MCN-3WUW-3NJ6',
-'Q9UV-OHEK-N2U8',
-'CSWJ-AF56-JSPF',
-'WAHP-4KL8-VT2Z',
-'4NU8-E297-8JV3',
-'ZHY3-35GX-YDWB',
-'R4JO-9A43-CAEG',
-'Z6OP-WSPR-0KRK',
-'M12C-NHRD-58IO',
-'HZXO-QRAB-NJL3',
-'EHO7-NK0D-7HRF',
-'AE31-WRT6-ZWDN',
-'1XVD-R87U-SJQO',
-'XG9Z-AGHB-48SM',
-'AZUP-GKZB-VH2D',
-'PTCH-EN4Z-CO7W',
-'HH5P-3DAR-FUWM',
-'9ZND-FD50-0O11',
-'9J0T-LLNL-OQHD',
-'MAQG-VM1J-732W',
-'9CE9-2U5X-X1IL',
-'H7DU-NWKO-XPF3'
-];
-
-
-/* ==========================================
    تنظيف الكود
 ========================================== */
 
 function normalizeCode(value){
+
   return value
     .trim()
     .toUpperCase();
+
 }
 
 
@@ -409,7 +303,9 @@ async function getDeviceFingerprint(){
     );
 
     return null;
+
   }
+
 }
 
 
@@ -426,7 +322,9 @@ function formatRemaining(ms){
     );
 
   const totalSeconds =
-    Math.floor(ms / 1000);
+    Math.floor(
+      ms / 1000
+    );
 
   const days =
     Math.floor(
@@ -452,6 +350,7 @@ function formatRemaining(ms){
     `${minutes} دقيقة، ` +
     `${seconds} ثانية`
   );
+
 }
 
 
@@ -485,6 +384,7 @@ function showRemaining(
         "#f87171";
 
       return false;
+
     }
 
     message.textContent =
@@ -497,6 +397,7 @@ function showRemaining(
       "#4ade80";
 
     return true;
+
   };
 
 
@@ -521,6 +422,7 @@ function showRemaining(
 
 
   return timer;
+
 }
 
 
@@ -570,15 +472,13 @@ document
 
 
       /* =====================================
-         التحقق من الكود محلياً
+         التحقق من وجود كود مدخل
       ===================================== */
 
-      if(
-        !VALID_CODES.includes(code)
-      ){
+      if(!code){
 
         message.textContent =
-          "❌ الكود غير صحيح.";
+          "❌ يرجى إدخال كود التفعيل.";
 
         message.style.color =
           "#f87171";
@@ -590,6 +490,7 @@ document
           "تفعيل الكود";
 
         return;
+
       }
 
 
@@ -620,6 +521,7 @@ document
           "تفعيل الكود";
 
         return;
+
       }
 
 
@@ -633,7 +535,11 @@ document
 
 
       /* =====================================
-         الاتصال بـ Supabase
+         الاتصال بـ Supabase Edge Function
+         
+         ملاحظة:
+         الكود نفسه لا يتم التحقق منه محلياً.
+         السيرفر هو الذي يبحث عنه في قاعدة البيانات.
       ===================================== */
 
       try{
@@ -705,6 +611,7 @@ document
             "تفعيل الكود";
 
           return;
+
         }
 
 
@@ -728,6 +635,7 @@ document
             "تفعيل الكود";
 
           return;
+
         }
 
 
@@ -735,10 +643,22 @@ document
            التفعيل ناجح
         =================================== */
 
-        showRemaining(
-          result.expiresAt,
-          message
-        );
+        if(result.expiresAt){
+
+          showRemaining(
+            result.expiresAt,
+            message
+          );
+
+        }else{
+
+          message.textContent =
+            "✅ تم تفعيل الكود بنجاح.";
+
+          message.style.color =
+            "#4ade80";
+
+        }
 
 
         button.textContent =
@@ -787,4 +707,4 @@ document
 </script>
 
 </body>
-  </html>
+</html>
