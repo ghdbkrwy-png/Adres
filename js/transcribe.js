@@ -196,84 +196,16 @@ if(file){
 });
 
 async function uploadAudio(file){
-/*
-* نستخدم upload.js الموجود أصلًا في المشروع.
-* الملف يمر من المتصفح إلى /api/upload ثم إلى Gemini،
-* والمفتاح السري لا يصل للمتصفح.
-*/
-const response = await fetch("/api/upload", {
-method: "POST",
-
-  headers: {
-    "Content-Type": file.type || "application/octet-stream",
-    "X-File-Name": encodeURIComponent(file.name),
-    "X-File-Size": String(file.size)
-  },
-
-  body: file
-});
-
-let data = null;
-
-try{
-  data = await response.json();
-}catch(e){
-  throw new Error("الخادم أعاد استجابة غير صالحة أثناء رفع التسجيل.");
-}
-
-if(!response.ok){
-  throw new Error(extractError(data));
-}
-
-if(!data || !data.file){
-  throw new Error("تم رفع التسجيل لكن لم يتم استلام معلومات الملف من الخادم.");
-}
-
-if(!data.file.uri){
-  throw new Error("Gemini لم يرجع رابط الملف بعد الرفع.");
-}
-
-return {
-  uri: data.file.uri,
-  mimeType: data.file.mimeType || file.type || "audio/mpeg"
-};
-
+  return Gemini.uploadSource("", file, null);
 }
 
 async function transcribeAudio(fileData){
-const response = await fetch("/api/transcribe", {
-method: "POST",
-
-  headers: {
-    "Content-Type": "application/json"
-  },
-
-  body: JSON.stringify({
-    fileUri: fileData.uri,
-    mimeType: fileData.mimeType
-  })
-});
-
-let data = null;
-
-try{
-  data = await response.json();
-}catch(e){
-  throw new Error("الخادم أعاد استجابة غير صالحة أثناء التفريغ.");
-}
-
-if(!response.ok){
-  throw new Error(extractError(data));
-}
-
-const text = data && data.text;
-
-if(typeof text !== "string" || !text.trim()){
-  throw new Error("لم يتم العثور على نص واضح في التسجيل.");
-}
-
-return text.trim();
-
+  const auth = AuthGuard.saved();
+  const response = await fetch(SUPABASE_FUNCTION("transcribe"), { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ code:auth.code, device_id:AuthGuard.deviceId(), file_uri:fileData.uri, mime_type:fileData.mimeType }) });
+  const data = await response.json().catch(() => null);
+  if(!response.ok) throw new Error(extractError(data));
+  if(typeof data?.text !== "string" || !data.text.trim()) throw new Error("لم يتم العثور على نص واضح في التسجيل.");
+  return data.text.trim();
 }
 
 function extractError(data){

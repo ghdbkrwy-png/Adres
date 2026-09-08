@@ -1,0 +1,17 @@
+[functions.check-activation]
+verify_jwt = false
+
+[functions.ai-chat]
+verify_jwt = false
+
+[functions.ai-tts]
+verify_jwt = false
+
+[functions.upload-to-gemini]
+verify_jwt = false
+
+[functions.file-status]
+verify_jwt = false
+
+[functions.transcribe]
+verify_jwt = false

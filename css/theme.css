@@ -38,7 +38,7 @@
   --overlay: rgba(0,0,0,.65);
 }
 
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+#auth-loading{position:fixed;inset:0;z-index:200;background:var(--bg,#F6F5F1);color:var(--ink,#211E19);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}html.auth-pending body > *{visibility:hidden;}html.auth-pending #auth-loading{visibility:visible;}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
 body{
   margin:0;background:var(--bg);color:var(--ink);
