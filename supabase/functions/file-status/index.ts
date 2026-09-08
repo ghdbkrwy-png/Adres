@@ -1,3 +1,4 @@
+const _v = "2026-09-08";
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const allowedOrigin = Deno.env.get("ALLOWED_ORIGIN") ?? "*";

@@ -2,709 +2,179 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل الدخول بالكود</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+<title>ادرس معي — تفعيل الكود</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/theme.css">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <style>
-*{
-  box-sizing:border-box
-}
-
-body{
-  margin:0;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-family:Arial,Tahoma,sans-serif;
-  background:linear-gradient(135deg,#0f172a,#1e293b);
-  color:#fff;
-  padding:20px
-}
-
-.card{
-  width:100%;
-  max-width:420px;
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.15);
-  border-radius:24px;
-  padding:28px;
-  backdrop-filter:blur(16px);
-  box-shadow:0 20px 60px rgba(0,0,0,.3)
-}
-
-h1{
-  margin:0 0 10px;
-  text-align:center;
-  font-size:28px
-}
-
-p{
-  text-align:center;
-  color:#cbd5e1;
-  margin:0 0 24px
-}
-
-input{
-  width:100%;
-  padding:16px;
-  border:1px solid #475569;
-  border-radius:14px;
-  background:#0f172a;
-  color:#fff;
-  font-size:18px;
-  text-align:center;
-  outline:none;
-  letter-spacing:2px
-}
-
-input:focus{
-  border-color:#60a5fa
-}
-
-button{
-  width:100%;
-  margin-top:14px;
-  padding:16px;
-  border:0;
-  border-radius:14px;
-  background:#2563eb;
-  color:white;
-  font-size:17px;
-  font-weight:bold;
-  cursor:pointer
-}
-
-button:disabled{
-  opacity:.6;
-  cursor:not-allowed
-}
-
-#message{
-  min-height:24px;
-  text-align:center;
-  margin-top:16px;
-  font-weight:bold;
-  line-height:1.6
-}
-
-.info{
-  margin-top:18px;
-  padding:12px;
-  border-radius:12px;
-  background:rgba(255,255,255,.05);
-  font-size:13px;
-  color:#cbd5e1;
-  text-align:center
-}
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;overflow:auto;}
+  .activate-card{background:var(--panel);border:1px solid var(--border);border-radius:20px;width:100%;max-width:400px;padding:28px 24px;box-shadow:var(--shadow);text-align:center;}
+  .activate-logo{width:52px;height:52px;border-radius:14px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:24px;box-shadow:var(--shadow);}
+  .activate-card h1{margin:0 0 6px;font-size:22px;font-weight:800;color:var(--ink);}
+  .activate-card .sub{margin:0 0 22px;font-size:13px;color:var(--ink-soft);line-height:1.7;}
+  .activate-input{width:100%;padding:14px 16px;border-radius:12px;border:1.5px solid var(--border);background:var(--panel-2);color:var(--ink);font-family:inherit;font-size:16px;text-align:center;outline:none;letter-spacing:1px;transition:.15s;}
+  .activate-input:focus{border-color:var(--accent);}
+  .activate-btn{width:100%;margin-top:14px;padding:14px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:.15s;}
+  .activate-btn:hover{filter:brightness(1.08);}
+  .activate-btn:disabled{opacity:.55;cursor:not-allowed;}
+  #activate-message{min-height:22px;margin-top:14px;font-size:12.5px;font-weight:600;line-height:1.6;color:var(--ink-soft);}
+  #activate-message.err{color:var(--danger);}
+  #activate-message.ok{color:var(--accent);}
+  .activate-info{margin-top:18px;padding:12px 14px;border-radius:12px;background:var(--panel-2);font-size:11.5px;color:var(--ink-faint);line-height:1.7;}
+  .activate-spinner{width:20px;height:20px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:act-spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-left:8px;}
+  @keyframes act-spin{to{transform:rotate(360deg);}}
+  .countdown-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px;}
+  .countdown-cell{background:var(--panel-2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;}
+  .countdown-num{font-size:20px;font-weight:800;color:var(--accent-ink);}
+  .countdown-label{font-size:10px;color:var(--ink-faint);margin-top:2px;}
 </style>
+  <meta property="og:image" content="https://bolt.new/static/og_default.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
 </head>
-
 <body>
 
-<div class="card">
-
-  <h1>تسجيل الدخول</h1>
-
-  <p>أدخل كود التفعيل للمتابعة</p>
+<div class="activate-card">
+  <div class="activate-logo" id="activate-logo"></div>
+  <h1>ادرس معي</h1>
+  <p class="sub">أدخل كود التفعيل للوصول إلى دفاترك الذكية</p>
 
   <form id="loginForm">
-
-    <input
-      id="codeInput"
-      type="text"
-      autocomplete="off"
-      spellcheck="false"
-      maxlength="14"
-      placeholder="XXXX-XXXX-XXXX"
-      required
-    >
-
-    <button id="submitBtn" type="submit">
-      تفعيل الكود
-    </button>
-
+    <input id="codeInput" class="activate-input" type="text" autocomplete="off" spellcheck="false" maxlength="20" placeholder="XXXX-XXXX-XXXX" required>
+    <button id="submitBtn" class="activate-btn" type="submit">تفعيل الكود</button>
   </form>
 
-  <div id="message"></div>
+  <div id="activate-message"></div>
+  <div id="countdown-wrap" class="hidden"></div>
 
-  <div class="info">
-    صلاحية الكود تبدأ من لحظة تفعيله
-    وتستمر لمدة شهر كامل.
+  <div class="activate-info">
+    صلاحية الكود تبدأ من لحظة تفعيله وتستمر لمدة 30 يومًا كاملة.
   </div>
-
 </div>
 
+<script src="js/config.js"></script>
+<script src="js/icons.js"></script>
 <script>
+(function(){
+  "use strict";
 
-/* ==========================================
-   إعدادات النظام
-========================================== */
+  var logoEl = document.getElementById("activate-logo");
+  if(logoEl && window.icon) logoEl.innerHTML = icon("brand");
 
-const VERIFY_URL =
-  "https://vhcietifebbqlyxhryyf.supabase.co/functions/v1/verify-code";
+  var VERIFY_URL = SUPABASE_FUNCTION("check-activation");
+  var DESTINATION = "home.html";
+  var LS_KEY = "adrisma3i_activation_v1";
+  var DEVICE_KEY = "adrisma3i_installation_v1";
 
-const DESTINATION =
-  "home.html";
-
-
-/* ==========================================
-   تنظيف الكود
-========================================== */
-
-function normalizeCode(value){
-
-  return value
-    .trim()
-    .toUpperCase();
-
-}
-
-
-/* ==========================================
-   إنشاء بصمة الجهاز
-========================================== */
-
-async function getDeviceFingerprint(){
-
-  const components = [];
-
-  components.push(
-    navigator.userAgent || ""
-  );
-
-  components.push(
-    navigator.language || ""
-  );
-
-  components.push(
-    navigator.languages
-      ? navigator.languages.join(",")
-      : ""
-  );
-
-  components.push(
-    screen.width || ""
-  );
-
-  components.push(
-    screen.height || ""
-  );
-
-  components.push(
-    screen.colorDepth || ""
-  );
-
-  components.push(
-    window.devicePixelRatio || 1
-  );
-
-  try{
-
-    components.push(
-      Intl.DateTimeFormat()
-        .resolvedOptions()
-        .timeZone || ""
-    );
-
-  }catch(_){
-
-    components.push("");
-
+  function deviceId(){
+    var v = localStorage.getItem(DEVICE_KEY);
+    if(!v){ v = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36)); localStorage.setItem(DEVICE_KEY, v); }
+    return v;
   }
 
-  components.push(
-    navigator.hardwareConcurrency || ""
-  );
+  function savedActivation(){
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || "null"); } catch(e){ return null; }
+  }
 
-  components.push(
-    navigator.deviceMemory || ""
-  );
+  function normalizeCode(v){ return v.trim().toUpperCase(); }
 
-  components.push(
-    navigator.platform || ""
-  );
+  function formatRemaining(ms){
+    ms = Math.max(0, ms);
+    var s = Math.floor(ms / 1000);
+    var d = Math.floor(s / 86400);
+    var h = Math.floor((s % 86400) / 3600);
+    var m = Math.floor((s % 3600) / 60);
+    var sec = s % 60;
+    return { d:d, h:h, m:m, s:sec };
+  }
 
-  components.push(
-    navigator.maxTouchPoints || 0
-  );
-
-
-  /* Canvas fingerprint */
-
-  try{
-
-    const canvas =
-      document.createElement("canvas");
-
-    const ctx =
-      canvas.getContext("2d");
-
-    if(ctx){
-
-      ctx.textBaseline = "top";
-
-      ctx.font =
-        "14px Arial";
-
-      ctx.fillText(
-        "ادرس معي - Device Fingerprint",
-        2,
-        2
-      );
-
-      components.push(
-        canvas.toDataURL()
-      );
-
+  function showCountdown(expiresAt){
+    var wrap = document.getElementById("countdown-wrap");
+    wrap.classList.remove("hidden");
+    var expiry = new Date(expiresAt).getTime();
+    function tick(){
+      var rem = expiry - Date.now();
+      if(rem <= 0){ wrap.innerHTML = '<div style="color:var(--danger);font-weight:700;">انتهت صلاحية الكود</div>'; clearInterval(timer); return; }
+      var t = formatRemaining(rem);
+      wrap.innerHTML =
+        '<div style="font-size:11.5px;color:var(--ink-soft);margin-bottom:8px;">متبقي على اشتراكك:</div>' +
+        '<div class="countdown-grid">' +
+          '<div class="countdown-cell"><div class="countdown-num">' + t.d + '</div><div class="countdown-label">يوم</div></div>' +
+          '<div class="countdown-cell"><div class="countdown-num">' + t.h + '</div><div class="countdown-label">ساعة</div></div>' +
+          '<div class="countdown-cell"><div class="countdown-num">' + t.m + '</div><div class="countdown-label">دقيقة</div></div>' +
+          '<div class="countdown-cell"><div class="countdown-num">' + t.s + '</div><div class="countdown-label">ثانية</div></div>' +
+        '</div>';
     }
-
-  }catch(_){
-
-    components.push("");
-
+    tick();
+    var timer = setInterval(tick, 1000);
   }
 
-
-  const raw =
-    components.join("|||");
-
-
-  /* SHA-256 */
-
-  try{
-
-    const encoder =
-      new TextEncoder();
-
-    const data =
-      await crypto.subtle.digest(
-        "SHA-256",
-        encoder.encode(raw)
-      );
-
-    const bytes =
-      new Uint8Array(data);
-
-    return Array
-      .from(bytes)
-      .map(
-        b =>
-          b.toString(16)
-           .padStart(2,"0")
-      )
-      .join("");
-
-  }catch(error){
-
-    console.error(
-      "Fingerprint error:",
-      error
-    );
-
-    return null;
-
+  function showMessage(text, type){
+    var el = document.getElementById("activate-message");
+    el.textContent = text;
+    el.className = type || "";
   }
 
-}
+  async function checkExisting(){
+    var saved = savedActivation();
+    if(!saved || !saved.code) return;
+    try{
+      var res = await fetch(VERIFY_URL, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ code:saved.code, device_id:deviceId(), mode:"check" }) });
+      var data = await res.json().catch(function(){ return null; });
+      if(res.ok && data && data.valid){
+        localStorage.setItem(LS_KEY, JSON.stringify({ code:saved.code, expiresAt:data.expires_at, activatedAt:data.activated_at }));
+        window.location.replace(DESTINATION);
+      }
+    }catch(e){}
+  }
 
+  checkExisting();
 
-/* ==========================================
-   تنسيق الوقت المتبقي
-========================================== */
+  document.getElementById("loginForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+    var input = document.getElementById("codeInput");
+    var button = document.getElementById("submitBtn");
+    var code = normalizeCode(input.value);
 
-function formatRemaining(ms){
+    if(!code){ showMessage("يرجى إدخال كود التفعيل.", "err"); return; }
 
-  ms =
-    Math.max(
-      0,
-      ms
-    );
+    button.disabled = true;
+    button.innerHTML = '<span class="activate-spinner"></span> جارٍ التحقق...';
+    showMessage("");
 
-  const totalSeconds =
-    Math.floor(
-      ms / 1000
-    );
+    try{
+      var res = await fetch(VERIFY_URL, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ code:code, device_id:deviceId() }) });
+      var data = await res.json().catch(function(){ return null; });
 
-  const days =
-    Math.floor(
-      totalSeconds / 86400
-    );
-
-  const hours =
-    Math.floor(
-      (totalSeconds % 86400) / 3600
-    );
-
-  const minutes =
-    Math.floor(
-      (totalSeconds % 3600) / 60
-    );
-
-  const seconds =
-    totalSeconds % 60;
-
-  return (
-    `${days} يوم، ` +
-    `${hours} ساعة، ` +
-    `${minutes} دقيقة، ` +
-    `${seconds} ثانية`
-  );
-
-}
-
-
-/* ==========================================
-   عرض الصلاحية
-========================================== */
-
-function showRemaining(
-  expiresAt,
-  message
-){
-
-  const expiry =
-    new Date(
-      expiresAt
-    ).getTime();
-
-  const update = () => {
-
-    const remaining =
-      expiry - Date.now();
-
-    if(
-      remaining <= 0
-    ){
-
-      message.textContent =
-        "⏰ انتهت صلاحية الكود.";
-
-      message.style.color =
-        "#f87171";
-
-      return false;
-
-    }
-
-    message.textContent =
-      "✅ الكود صالح — المتبقي: " +
-      formatRemaining(
-        remaining
-      );
-
-    message.style.color =
-      "#4ade80";
-
-    return true;
-
-  };
-
-
-  update();
-
-
-  const timer =
-    setInterval(
-      () => {
-
-        if(!update()){
-
-          clearInterval(
-            timer
-          );
-
-        }
-
-      },
-      1000
-    );
-
-
-  return timer;
-
-}
-
-
-/* ==========================================
-   تسجيل الدخول
-========================================== */
-
-document
-  .getElementById("loginForm")
-  .addEventListener(
-    "submit",
-    async function(e){
-
-      e.preventDefault();
-
-
-      const input =
-        document.getElementById(
-          "codeInput"
-        );
-
-      const button =
-        document.getElementById(
-          "submitBtn"
-        );
-
-      const message =
-        document.getElementById(
-          "message"
-        );
-
-
-      const code =
-        normalizeCode(
-          input.value
-        );
-
-
-      message.textContent =
-        "";
-
-      button.disabled =
-        true;
-
-      button.textContent =
-        "جارٍ التعرف على الجهاز...";
-
-
-      /* =====================================
-         التحقق من وجود كود مدخل
-      ===================================== */
-
-      if(!code){
-
-        message.textContent =
-          "❌ يرجى إدخال كود التفعيل.";
-
-        message.style.color =
-          "#f87171";
-
-        button.disabled =
-          false;
-
-        button.textContent =
-          "تفعيل الكود";
-
+      if(!res.ok || !data){
+        showMessage("تعذر الاتصال بالخادم.", "err");
+        button.disabled = false; button.textContent = "تفعيل الكود";
         return;
-
       }
 
-
-      /* =====================================
-         إنشاء بصمة الجهاز
-      ===================================== */
-
-      const deviceFingerprint =
-        await getDeviceFingerprint();
-
-
-      if(!deviceFingerprint){
-
-        console.error(
-          "DEVICE_FINGERPRINT_ERROR"
-        );
-
-        message.textContent =
-          "❌ تعذر التعرف على الجهاز.";
-
-        message.style.color =
-          "#f87171";
-
-        button.disabled =
-          false;
-
-        button.textContent =
-          "تفعيل الكود";
-
+      if(!data.valid){
+        showMessage(data.message || "تعذر تفعيل الكود.", "err");
+        button.disabled = false; button.textContent = "تفعيل الكود";
         return;
-
       }
 
+      localStorage.setItem(LS_KEY, JSON.stringify({ code:code, expiresAt:data.expires_at, activatedAt:data.activated_at }));
+      showMessage("تم تفعيل الكود بنجاح!", "ok");
+      button.textContent = "تم التفعيل";
 
-      console.log(
-        "Device fingerprint generated successfully."
-      );
+      if(data.expires_at) showCountdown(data.expires_at);
 
+      setTimeout(function(){ window.location.replace(DESTINATION); }, 2500);
 
-      button.textContent =
-        "جارٍ التحقق...";
-
-
-      /* =====================================
-         الاتصال بـ Supabase Edge Function
-         
-         ملاحظة:
-         الكود نفسه لا يتم التحقق منه محلياً.
-         السيرفر هو الذي يبحث عنه في قاعدة البيانات.
-      ===================================== */
-
-      try{
-
-        const response =
-          await fetch(
-            VERIFY_URL,
-            {
-              method:"POST",
-
-              headers:{
-                "Content-Type":
-                  "application/json"
-              },
-
-              body:
-                JSON.stringify({
-                  code:code,
-
-                  device_fingerprint:
-                    deviceFingerprint
-                })
-            }
-          );
-
-
-        let result;
-
-
-        try{
-
-          result =
-            await response.json();
-
-        }catch(_){
-
-          throw new Error(
-            "INVALID_SERVER_RESPONSE"
-          );
-
-        }
-
-
-        /* ===================================
-           أخطاء الخادم
-        =================================== */
-
-        if(!response.ok){
-
-          console.error(
-            "SERVER_ERROR:",
-            result
-          );
-
-          message.textContent =
-            "❌ " +
-            (
-              result.message ||
-              "حدث خطأ في الخادم."
-            );
-
-          message.style.color =
-            "#f87171";
-
-          button.disabled =
-            false;
-
-          button.textContent =
-            "تفعيل الكود";
-
-          return;
-
-        }
-
-
-        /* ===================================
-           الكود مرفوض
-        =================================== */
-
-        if(!result.valid){
-
-          message.textContent =
-            result.message ||
-            "❌ تعذر تفعيل الكود.";
-
-          message.style.color =
-            "#f87171";
-
-          button.disabled =
-            false;
-
-          button.textContent =
-            "تفعيل الكود";
-
-          return;
-
-        }
-
-
-        /* ===================================
-           التفعيل ناجح
-        =================================== */
-
-        if(result.expiresAt){
-
-          showRemaining(
-            result.expiresAt,
-            message
-          );
-
-        }else{
-
-          message.textContent =
-            "✅ تم تفعيل الكود بنجاح.";
-
-          message.style.color =
-            "#4ade80";
-
-        }
-
-
-        button.textContent =
-          "تم التفعيل ✓";
-
-
-        /* ===================================
-           الانتقال للتطبيق
-        =================================== */
-
-        setTimeout(
-          () => {
-
-            window.location.replace(
-              DESTINATION
-            );
-
-          },
-          3000
-        );
-
-      }catch(error){
-
-        console.error(
-          "CONNECTION_ERROR:",
-          error
-        );
-
-        message.textContent =
-          "❌ تعذر الاتصال بالخادم.";
-
-        message.style.color =
-          "#f87171";
-
-        button.disabled =
-          false;
-
-        button.textContent =
-          "تفعيل الكود";
-
-      }
-
+    }catch(err){
+      showMessage("تعذر الاتصال بالخادم.", "err");
+      button.disabled = false; button.textContent = "تفعيل الكود";
     }
-  );
-
+  });
+})();
 </script>
-
 </body>
 </html>

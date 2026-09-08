@@ -16,6 +16,7 @@
   document.documentElement.setAttribute('data-theme', theme);
 }catch(e){} })();
 </script>
+<script>document.documentElement.classList.add('auth-pending');</script>
 </head>
 <body>
 <header id="topbar"></header>
@@ -35,6 +36,7 @@
 <div id="modals-mount"></div>
 
 <script src="js/config.js"></script>
+<script src="js/auth-guard.js"></script>
 <script src="js/icons.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/gemini.js"></script>
